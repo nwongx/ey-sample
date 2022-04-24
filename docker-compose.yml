@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  dev:
+    container_name: ey-sample-dev
+    image: ey-sample-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - /usr/app/src
+    ports:
+      - 3000:3000 
+  
+  build:
+    container_name: ey-sample-build
+    image: ey-sample-build
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /usr/app/src
+    ports:
+      - 8080:80 
