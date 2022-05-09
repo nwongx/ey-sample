@@ -3,6 +3,7 @@ import { Box } from '@mui/system';
 import React, { FC } from 'react';
 import SwapInput from './SwapInput';
 import TokenModalButton from './TokenModalButton';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 type Props = {
 
@@ -27,14 +28,17 @@ const Swap: FC<Props> = function () {
       <Divider />
       <Box
         sx={{
-          padding: 3,
+          padding: '24px 32px 24px 32px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 3,
+          alignItems: 'center',
+          gap: 2,
         }}
       >
         <Box
           sx={(theme) => ({
+            width: '100%',
+            boxSizing: 'border-box',
             borderRadius: 3,
             padding: '0.75rem',
             paddingBottom: '1rem',
@@ -57,9 +61,22 @@ const Swap: FC<Props> = function () {
               />}
           />
         </Box>
-        <Box>arrow</Box>
+        <Box>
+          <ArrowDownwardIcon
+            sx={{
+              color: 'rgb(31, 199, 212);',
+              backgroundColor: 'rgb(239, 244, 245)',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              fontSize: 14,
+              padding: '0.2rem'
+            }} />
+        </Box>
         <Box
           sx={(theme) => ({
+            width: '100%',
+            boxSizing: 'border-box',
             borderRadius: 3,
             padding: '0.75rem',
             paddingBottom: '1rem',
@@ -81,8 +98,19 @@ const Swap: FC<Props> = function () {
                 token='BNB'
               />}
           />
+          
         </Box>
-        <Button>Unlock Wallet/Swap</Button>
+        <Button
+          sx={{
+            marginTop: 3,
+            color: 'white',
+            fontWeight: 600,
+            height: 48,
+            width: '100%',
+            borderRadius: 3,
+            backgroundColor: 'rgb(31, 199, 212)'
+          }}
+        >Unlock Wallet/Swap</Button>
 
       </Box>
     </Box>
