@@ -13,6 +13,7 @@ import { ThemeProvider } from '@emotion/react';
 import { createTheme, Box } from '@mui/material';
 import Symbols from './pages/Symbols';
 import Swap from './pages/Swap';
+import WalletProvider from './contexts/walletContext';
 
 const theme = createTheme({
   typography: {
@@ -29,19 +30,21 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
-        <Box
-          sx={{
-            height: 'calc(100vh - 56px)',
-            p: 2
-          }}
-        >
-          <Routes>
-            <Route path="/home" element={<App />} />
-            <Route path="/symbols" element={<Symbols />} />
-            <Route path="/swap" element={<Swap />} />
-          </Routes>
-        </Box>
-        <BottomAppBar />
+        <WalletProvider>
+          <Box
+            sx={{
+              height: 'calc(100vh - 56px)',
+              p: 2
+            }}
+          >
+            <Routes>
+              <Route path="/home" element={<App />} />
+              <Route path="/symbols" element={<Symbols />} />
+              <Route path="/swap" element={<Swap />} />
+            </Routes>
+          </Box>
+          <BottomAppBar />
+        </WalletProvider>
       </ThemeProvider>
 
     </BrowserRouter>
