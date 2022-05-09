@@ -12,7 +12,7 @@ import BottomAppBar from './components/AppBar';
 import { ThemeProvider } from '@emotion/react';
 import { createTheme, Box } from '@mui/material';
 import Symbols from './pages/Symbols';
-import Swap from './pages/Swap';
+import Transfer from './pages/Transfer';
 import WalletProvider from './contexts/walletContext';
 
 const theme = createTheme({
@@ -40,7 +40,7 @@ root.render(
             <Routes>
               <Route path="/home" element={<App />} />
               <Route path="/symbols" element={<Symbols />} />
-              <Route path="/swap" element={<Swap />} />
+              <Route path="/Transfer" element={<Transfer />} />
             </Routes>
           </Box>
           <BottomAppBar />

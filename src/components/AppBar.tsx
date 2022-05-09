@@ -29,7 +29,7 @@ const BottomAppBar: FC<Props> = function () {
           flex: 1,
           textAlign: 'center',
           textDecoration: 'none'
-        }} to='/swap'>
+        }} to='/Transfer'>
           <SwapVertIcon />
         </Link>
         {

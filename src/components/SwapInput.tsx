@@ -63,7 +63,7 @@ const CustomInput = React.forwardRef(function CustomInput(
 
 const SwapInput: FC<InputUnstyledProps> = function (props: InputUnstyledProps) {
   return (
-    <CustomInput aria-label="swap amount" placeholder='Type something...' {...props} />
+    <CustomInput aria-label="Transfer amount" placeholder='Type something...' {...props} />
   )
 }
 
