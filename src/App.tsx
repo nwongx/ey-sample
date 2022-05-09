@@ -1,27 +1,50 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import MarketPriceSocketProvider from './contexts/marketPriceSocket';
+import MarketPriceList from './components/MarketPriceList';
+import Swap from './components/Swap';
+import { createTheme, Grid } from '@mui/material';
+import { ThemeProvider } from '@emotion/react';
+
+const theme = createTheme({
+  typography: {
+    subtitle2: {
+      fontWeight: 600,
+    }
+  }
+})
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <ThemeProvider theme={theme}>
+      <Grid
+        sx={{
+          height: '100vh'
+        }}
+        container
+        flexDirection='column'
+        className="App"
+      >
+        <Grid>
+          <MarketPriceSocketProvider>
+            <MarketPriceList />
+          </MarketPriceSocketProvider>
+        </Grid>
+        <Grid
+          sx={{
+            p: 1,
+            flex: 1
+          }}
+          container
+          item
+          justifyContent='center'
+          alignItems='center'
+
         >
-          <h1 className="text-3xl font-bold underline">
-            Hello world!
-          </h1>
-        </a>
-      </header>
-    </div>
+          <Swap />
+        </Grid>
+      </Grid>
+    </ThemeProvider>
   );
 }
 
