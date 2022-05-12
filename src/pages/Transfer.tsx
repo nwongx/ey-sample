@@ -11,6 +11,7 @@ import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import type { AbiItem } from 'web3-utils';
 import axios from 'axios';
+import Modal from '@mui/material/Modal';
 
 type Props = {
 
@@ -28,6 +29,13 @@ interface ITransferState {
 interface ITransferActionPayload {
   toError: TTransferError,
   amountError: TTransferError
+}
+
+interface IRawTx {
+  from: string,
+  to: string,
+  data: string,
+  chainId: string
 }
 
 type TTransferAction = { type: 'SUCCESS_TRANSFER_TOKEN' | 'FAILURE_TRANSFER_TOKEN', payload: ITransferActionPayload };
@@ -62,6 +70,11 @@ const Transfer: FC<Props> = function () {
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [estimatedGas, setEstimatedGas] = useState(0);
+  const [rawTx, setRawTx] = useState<IRawTx | null>(null);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   const { accounts } = useContext(WalletContext);
 
   useEffect(function () {
@@ -71,11 +84,38 @@ const Transfer: FC<Props> = function () {
   }, [tokenAddress])
 
   useEffect(function () {
-    if (state.toError || state.amountError) return;
-    // send transfer
-  }, [
-    state
-  ])
+    async function createRawTx() {
+      if (accounts) {
+        try {
+          const res = await axios.get(`
+        https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=${tokenAddress}&apikey=${process.env.REACT_APP_BSC_API_KEY}`)
+          const abi = JSON.parse(res.data.result);
+          const web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
+          const amountInWei = Web3.utils.toWei(amount);
+          const contract = new web3.eth.Contract(abi, tokenAddress, { from: accounts[0] });
+          const data = await contract
+            .methods
+            .transfer(toAddress, amountInWei.toString())
+            .encodeABI();
+          const rawTx = {
+            from: accounts[0],
+            to: tokenAddress,
+            data,
+            chainId: process.env.REACT_APP_CHAIN_ID as string
+          }
+          setRawTx(rawTx);
+          setOpen(true);
+
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+
+    createRawTx();
+  }, [estimatedGas])
+
+
 
   useEffect(function () {
     async function submitHandler() {
@@ -101,30 +141,33 @@ const Transfer: FC<Props> = function () {
           const abi = JSON.parse(res.data.result);
           if (accounts) {
             const contract = new web3.eth.Contract(abi, tokenAddress, { from: accounts[0] });
-            const estimatedGasFee = await contract
+            const estimatedGas = await contract
               .methods
               .transfer(toAddress, amountInWei.toString())
               .estimateGas();
-            const data = await contract
-              .methods
-              .transfer(toAddress, amountInWei.toString())
-              .encodeABI();
-            const rawTx = {
-              from: accounts[0],
-              to: tokenAddress,
-              data,
-              chainId: process.env.REACT_APP_CHAIN_ID
-            }
-            const txHash = await window.ethereum.request({
-              method: 'eth_sendTransaction',
-              params: [rawTx],
-            })
-            
+            setEstimatedGas(estimatedGas)
+
+
           }
         } catch (e: unknown) {
           if (e instanceof Error) {
             if (e.message.includes('transfer amount exceeds balance')) {
               // show error msg
+              dispatch({
+                type: FAILURE_TRANSFER_TOKEN,
+                payload: {
+                  ...state,
+                  amountError: 'transfer amount excceds balance'
+                }
+              })
+            } else if (e.message.includes('invalid address')) {
+              dispatch({
+                type: FAILURE_TRANSFER_TOKEN,
+                payload: {
+                  ...state,
+                  toError: 'invalid address'
+                }
+              })
             } else {
               console.log(e);
             }
@@ -162,109 +205,145 @@ const Transfer: FC<Props> = function () {
   }
 
   return (
-    <Grid
-      sx={{
-        p: 1,
-        flex: 1,
-        height: '100%'
-      }}
-      container
-      item
-      justifyContent='center'
-      alignItems='center'
-
-    >
-      <Box
-        sx={(theme) => ({
-          width: 400,
+    <>
+      <Button onClick={handleOpen}>Open modal</Button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={(theme) => ({
+          boxSizing: 'border-box',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          p: 4,
+          width: '80%',
+          maxWidth: 400,
+          backgroundColor: 'white',
           borderRadius: 3,
           boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px'
-        })}
+        })}>
+          <Box>{`from: ${accounts && accounts[0] ? accounts[0] : '---'}`}</Box>
+          <Box>{`to: ${toAddress}`}</Box>
+          <Box>{`estimate Gas ${estimatedGas}`}</Box>
+          <Button onClick={async () => {
+            const txHash = await window.ethereum.request({
+              method: 'eth_sendTransaction',
+              params: [rawTx],
+            })
+          }} variant='contained' disabled={!estimatedGas}>Confirm</Button>
+        </Box>
+      </Modal>
+      <Grid
+        sx={{
+          p: 1,
+          flex: 1,
+          height: '100%'
+        }}
+        container
+        item
+        justifyContent='center'
+        alignItems='center'
+
       >
         <Box
-          sx={{
-            p: 2,
-          }}
+          sx={(theme) => ({
+            width: 400,
+            borderRadius: 3,
+            boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px'
+          })}
         >
-          <Typography variant='h6'>Transfer</Typography>
-        </Box>
-        <Divider />
-        <form onSubmit={onSubmit}>
-          <Grid
+          <Box
             sx={{
               p: 2,
-              paddingBottom: 4,
-              gap: 2
             }}
-            container
-            justifyContent='center'
-            flexDirection='column'
           >
-            <FormControl >
-              <InputLabel id='token-select-label'>Token</InputLabel>
-              <Select
-                defaultValue='native'
-                labelId="token-select-label"
-                id="token-select"
-                label="Token"
-                onChange={onTokenChange}
-              >
-                <MenuItem value='native'>BNB</MenuItem>
-                {
-                  testSymbols.reduce<React.ReactNode[]>(function (menuItems, symbol) {
-                    if (!symbol.address) return menuItems;
-                    menuItems.push(
-                      <MenuItem key={symbol.id} value={symbol.address}>
-                        {symbol.token}
-                      </MenuItem>
-                    );
-                    return menuItems;
-                  }, [])
-                }
-              </Select>
-            </FormControl>
-            <FormControl>
-              <TextField
-                error={!!state.toError}
-                label='To'
-                variant='standard'
-                onChange={onToChange}
-              />
-              {state.toError && <FormHelperText>{state.toError}</FormHelperText>}
-            </FormControl>
-            <FormControl>
-              <TextField
-                error={!!state.amountError}
-                label='Amount'
-                variant='standard'
-                onChange={onAmountChange}
-              />
-              {state.amountError && <FormHelperText>{state.amountError}</FormHelperText>}
-            </FormControl>
-            <Button
-              type='submit'
-              disabled={!accounts || accounts.length === 0}
+            <Typography variant='h6'>Transfer</Typography>
+          </Box>
+          <Divider />
+          <form onSubmit={onSubmit}>
+            <Grid
               sx={{
-                marginTop: 3,
-                color: 'white',
-                fontWeight: 600,
-                height: 48,
-                width: '100%',
-                borderRadius: 3,
-                backgroundColor: 'rgb(31, 199, 212)'
+                p: 2,
+                paddingBottom: 4,
+                gap: 2
               }}
+              container
+              justifyContent='center'
+              flexDirection='column'
             >
-              {
-                !accounts || accounts.length === 0 ?
-                  'please connect to metamask' :
-                  'transfer'
-              }
-            </Button>
+              <FormControl >
+                <InputLabel id='token-select-label'>Token</InputLabel>
+                <Select
+                  defaultValue='native'
+                  labelId="token-select-label"
+                  id="token-select"
+                  label="Token"
+                  onChange={onTokenChange}
+                >
+                  <MenuItem value='native'>BNB</MenuItem>
+                  {
+                    testSymbols.reduce<React.ReactNode[]>(function (menuItems, symbol) {
+                      if (!symbol.address) return menuItems;
+                      menuItems.push(
+                        <MenuItem key={symbol.id} value={symbol.address}>
+                          {symbol.token}
+                        </MenuItem>
+                      );
+                      return menuItems;
+                    }, [])
+                  }
+                </Select>
+              </FormControl>
+              <FormControl>
+                <TextField
+                  required
+                  error={!!state.toError}
+                  label='To'
+                  variant='standard'
+                  onChange={onToChange}
+                />
+                {state.toError && <FormHelperText>{state.toError}</FormHelperText>}
+              </FormControl>
+              <FormControl>
+                <TextField
+                  required
+                  error={!!state.amountError}
+                  label='Amount'
+                  variant='standard'
+                  onChange={onAmountChange}
+                />
+                {state.amountError && <FormHelperText>{state.amountError}</FormHelperText>}
+              </FormControl>
+              <Button
+                type='submit'
+                disabled={!accounts || accounts.length === 0}
+                sx={{
+                  marginTop: 3,
+                  color: 'white',
+                  fontWeight: 600,
+                  height: 48,
+                  width: '100%',
+                  borderRadius: 3,
+                  backgroundColor: 'rgb(31, 199, 212)'
+                }}
+              >
+                {
+                  !accounts || accounts.length === 0 ?
+                    'please connect to metamask' :
+                    'transfer'
+                }
+              </Button>
 
-          </Grid>
-        </form>
-      </Box>
-    </Grid >
+            </Grid>
+          </form>
+        </Box>
+      </Grid >
+
+    </>
   )
 }
 
