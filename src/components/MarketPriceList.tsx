@@ -10,11 +10,14 @@ function MarketPriceList() {
   return (
     <div>
       {
-        testSymbols.map(symbol => {
+        testSymbols.reduce<React.ReactNode[]>(function(items, symbol) {
+          if (!symbol.symbol) return items;
+
           const symbolMsg = symbolMsgs[symbol.symbol];
-          if (!symbolMsg) return null;
-          return <SymbolItem key={symbol.id} symbol={symbolMsg} />
-        })
+          if (!symbolMsg) return items;
+          items.push(<SymbolItem key={symbol.id} symbol={symbolMsg} />)
+          return items;
+        }, [])
       }
     </div>
   )
