@@ -8,8 +8,6 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { WalletContext } from '../contexts/walletContext';
 import { testSymbols } from '../contexts/marketPriceSocket';
 import Web3 from 'web3';
-import { Contract } from 'web3-eth-contract';
-import type { AbiItem } from 'web3-utils';
 import axios from 'axios';
 import Modal from '@mui/material/Modal';
 
@@ -34,7 +32,7 @@ interface ITransferActionPayload {
 interface IRawTx {
   from: string,
   to: string,
-  data: string,
+  data?: string,
   chainId: string
 }
 
@@ -87,24 +85,36 @@ const Transfer: FC<Props> = function () {
     async function createRawTx() {
       if (accounts) {
         try {
-          const res = await axios.get(`
+          if (tokenAddress === 'native') {
+            const amountInWei = Web3.utils.toWei(amount);
+            const rawTx = {
+              from: accounts[0],
+              to: toAddress,
+              chainId: process.env.REACT_APP_CHAIN_ID as string
+            }
+            setRawTx(rawTx);
+            setOpen(true);
+          } else {
+
+            const res = await axios.get(`
         https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=${tokenAddress}&apikey=${process.env.REACT_APP_BSC_API_KEY}`)
-          const abi = JSON.parse(res.data.result);
-          const web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
-          const amountInWei = Web3.utils.toWei(amount);
-          const contract = new web3.eth.Contract(abi, tokenAddress, { from: accounts[0] });
-          const data = await contract
-            .methods
-            .transfer(toAddress, amountInWei.toString())
-            .encodeABI();
-          const rawTx = {
-            from: accounts[0],
-            to: tokenAddress,
-            data,
-            chainId: process.env.REACT_APP_CHAIN_ID as string
+            const abi = JSON.parse(res.data.result);
+            const web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
+            const amountInWei = Web3.utils.toWei(amount);
+            const contract = new web3.eth.Contract(abi, tokenAddress, { from: accounts[0] });
+            const data = await contract
+              .methods
+              .transfer(toAddress, amountInWei.toString())
+              .encodeABI();
+            const rawTx = {
+              from: accounts[0],
+              to: tokenAddress,
+              data,
+              chainId: process.env.REACT_APP_CHAIN_ID as string
+            }
+            setRawTx(rawTx);
+            setOpen(true);
           }
-          setRawTx(rawTx);
-          setOpen(true);
 
         } catch (e) {
           console.log(e);
@@ -133,6 +143,15 @@ const Transfer: FC<Props> = function () {
       //is valid amount
       const amountInWei = Web3.utils.toWei(amount);
       if (tokenAddress === 'native') {
+        if (accounts) {
+          const estimatedGas = await web3.eth.estimateGas({
+            from: accounts[0],
+            to: toAddress,
+            value: web3.utils.toWei(amount)
+          })
+          console.log(estimatedGas)
+          setEstimatedGas(estimatedGas);
+        }
 
       } else {
         try {
@@ -206,7 +225,6 @@ const Transfer: FC<Props> = function () {
 
   return (
     <>
-      <Button onClick={handleOpen}>Open modal</Button>
       <Modal
         open={open}
         onClose={handleClose}
