@@ -1,36 +1,20 @@
-import { Grid, makeStyles } from '@mui/material';
-import React, { FC, useContext, useEffect, useState } from 'react';
-import { ISymbolMSG, MarketPriceSocketContext } from '../contexts/marketPriceSocket';
+import { Grid } from '@mui/material';
+import React, { FC } from 'react';
+import { IBinanceSymbolTicker } from '../api/interface';
+
 
 export interface ISymbol {
-  id: string,
-  token: string,
-  symbol: string,
-  address: string
+  id: string;
+  token: string;
+  symbol: string;
+  address: string;
 }
 
 type Props = {
-  symbol: ISymbolMSG
+  symbolTicker: IBinanceSymbolTicker;
+};
 
-}
-
-const SymbolItem: FC<Props> = function ({ symbol }) {
-  const [price, setPrice] = useState<string>('---');
-  const [updateTime, setUpdateTime] = useState<number>(0);
-
-  useEffect(() => {
-    if (symbol) {
-      if (symbol.E - updateTime > 5000) {
-        setPrice(symbol.p);
-        setUpdateTime(symbol.E);
-      }
-    }
-  }, [
-    symbol,
-    updateTime,
-    setPrice,
-    setUpdateTime
-  ])
+const SymbolItem: FC<Props> = function ({ symbolTicker }) {
 
   return (
     <Grid
@@ -42,17 +26,14 @@ const SymbolItem: FC<Props> = function ({ symbol }) {
         borderColor: theme.palette.grey[400],
       })}
       container
-      justifyContent='space-between'
-      alignItems='center'
+      justifyContent="space-between"
+      alignItems="center"
     >
-      <Grid>
-        {symbol.s}
-      </Grid>
-      <Grid>
-        {price}
-      </Grid>
+      <Grid>{symbolTicker.symbol}</Grid>
+      <Grid>{symbolTicker.lastPrice}</Grid>
+      <Grid>{symbolTicker.priceChangePercent}</Grid>
     </Grid>
-  )
-}
+  );
+};
 
 export default SymbolItem;
