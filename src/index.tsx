@@ -14,6 +14,7 @@ import { createTheme, Box } from '@mui/material';
 import Symbols from './pages/Symbols';
 import Transfer from './pages/Transfer';
 import WalletProvider from './contexts/walletContext';
+import Transactions from './pages/Transactions';
 
 const theme = createTheme({
   typography: {
@@ -38,9 +39,9 @@ root.render(
             }}
           >
             <Routes>
-              <Route path="/home" element={<App />} />
-              <Route path="/symbols" element={<Symbols />} />
-              <Route path="/Transfer" element={<Transfer />} />
+              <Route path="/" element={<Symbols />} />
+              <Route path="/transfer" element={<Transfer />} />
+              <Route path="/transactions" element={<Transactions />} />
             </Routes>
           </Box>
           <BottomAppBar />

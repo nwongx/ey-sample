@@ -22,14 +22,14 @@ const BottomAppBar: FC<Props> = function () {
           flex: 1,
           textAlign: 'center',
           textDecoration: 'none'
-        }} to='/symbols'>
+        }} to='/'>
           <ShowChartIcon />
         </Link>
         <Link style={{
           flex: 1,
           textAlign: 'center',
           textDecoration: 'none'
-        }} to='/Transfer'>
+        }} to='/transfer'>
           <SwapVertIcon />
         </Link>
         {
