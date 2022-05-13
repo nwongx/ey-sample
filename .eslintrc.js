@@ -22,7 +22,7 @@ module.exports = {
     {
       files: [
         '*.ts',
-        '.tsx',
+        '*.tsx',
       ],
       extends: [
         'plugin:@typescript-eslint/recommended',
@@ -37,7 +37,9 @@ module.exports = {
       rules: {
         'react/require-default-props': 'off',
         'import/prefer-default-export': 'off',
-        "prettier/prettier": ["error", { "singleQuote": true }]
+        "prettier/prettier": ["error", { "singleQuote": true }],
+        "func-names": ["error", "never"],
+        "no-floating-promise/no-floating-promise": ['error', 'never'],
       },
     },
   ],
