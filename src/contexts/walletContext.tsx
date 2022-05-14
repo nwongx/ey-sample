@@ -11,18 +11,20 @@ export const WalletContext = createContext<IWalletContext>({
 });
 
 type Props = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
-const WalletProvider: React.FC<Props> = function({ children }) {
+const WalletProvider: React.FC<Props> = function ({ children }) {
   const { isMetaMaskInstalled } = useContext(WalletContext);
   const [accounts, setAccounts] = useState<string[]>([]);
 
   return (
-    <WalletContext.Provider value={{ accounts, setAccounts, isMetaMaskInstalled }}>
+    <WalletContext.Provider
+      value={{ accounts, setAccounts, isMetaMaskInstalled }}
+    >
       {children}
     </WalletContext.Provider>
   );
-}
+};
 
 export default WalletProvider;

@@ -2,14 +2,13 @@ import { Button, Avatar } from '@mui/material';
 import React, { FC } from 'react';
 
 type Props = {
-  imgURL: string,
-  token: string
-}
+  imgURL: string;
+  token: string;
+};
 
 const TokenModalButton: FC<Props> = function ({ imgURL, token }) {
   return (
     <Button
-
       sx={{
         paddingLeft: '1.5rem',
         paddingRight: '1.5rem',
@@ -20,14 +19,13 @@ const TokenModalButton: FC<Props> = function ({ imgURL, token }) {
         },
         '&:hover': {
           borderRadius: 20,
-        }
+        },
       }}
       startIcon={
         <Avatar
           sx={{
             width: '1.7rem',
             height: '1.7rem',
-
           }}
           src={imgURL}
         />
@@ -35,7 +33,7 @@ const TokenModalButton: FC<Props> = function ({ imgURL, token }) {
     >
       {token}
     </Button>
-  )
+  );
 };
 
 export default TokenModalButton;

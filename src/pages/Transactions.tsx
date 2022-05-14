@@ -28,38 +28,46 @@ const Transactions: FC = function () {
   const [transactions, setTransactions] = useState([]);
   const { accounts } = useContext(WalletContext);
 
-  useEffect(function () {
-    async function fetchTransactions() {
-      if (accounts) {
-        const res = await axios.get(`https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${accounts[0]}&startblock=1&endblock=9999999999&sort=desc&apikey=${process.env.REACT_APP_API_KEY}&page=1&offset=10`)
-        if (res.data.status === '1') {
-          setTransactions(res.data.result)
+  useEffect(
+    function () {
+      async function fetchTransactions() {
+        if (accounts) {
+          const res = await axios.get(
+            `https://api-testnet.bscscan.com/api?module=account&action=txlist&address=${accounts[0]}&startblock=1&endblock=9999999999&sort=desc&apikey=${process.env.REACT_APP_API_KEY}&page=1&offset=10`
+          );
+          if (res.data.status === '1') {
+            setTransactions(res.data.result);
+          }
         }
       }
-    }
 
-    fetchTransactions();
-  }, [accounts])
+      fetchTransactions();
+    },
+    [accounts]
+  );
 
   return (
     <Box>
-      {
-        transactions.map(function (tx: IBSCTx) {
-          return (
-            <Box key={tx.blockHash} sx={{ margin: 2, overflowWrap: 'break-word'}}>
-              <Box>{tx.blockNumber}</Box>
-              <Box>{tx.from}</Box>
-              <Box>{tx.gasPrice} {tx.gasUsed}</Box>
-              <Box>{tx.isError}</Box>
-              <Box>{tx.to}</Box>
-              <Box>{tx.timeStamp}</Box>
-              <Box>{tx.value}</Box>
+      {transactions.map(function (tx: IBSCTx) {
+        return (
+          <Box
+            key={tx.blockHash}
+            sx={{ margin: 2, overflowWrap: 'break-word' }}
+          >
+            <Box>{tx.blockNumber}</Box>
+            <Box>{tx.from}</Box>
+            <Box>
+              {tx.gasPrice} {tx.gasUsed}
             </Box>
-          )
-        })
-      }
+            <Box>{tx.isError}</Box>
+            <Box>{tx.to}</Box>
+            <Box>{tx.timeStamp}</Box>
+            <Box>{tx.value}</Box>
+          </Box>
+        );
+      })}
     </Box>
-  )
-}
+  );
+};
 
 export default Transactions;
