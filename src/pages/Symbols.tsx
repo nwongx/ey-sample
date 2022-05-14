@@ -1,69 +1,166 @@
-import { Box } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  TablePagination,
+} from '@mui/material';
 import useWebSocket from 'react-use-websocket';
 import { fetchSymbolTickers } from '../api';
 import { IBinanceSymbolTicker } from '../api/interface';
-import SymbolItem from '../components/SymbolItem';
 import { supportTokens } from '../data/supportToken';
+import SymbolRow from '../components/SymbolRow';
+import type { IStreamTicker } from '../api/interface';
 
-export interface IStreamTicker {
-  e: string;
-  E: number;
-  s: string;
-  p: string;
-  P: string;
-  w: string;
-  x: string;
-  c: string;
-  Q: string;
-  b: string;
-  B: string;
-  a: string;
-  A: string;
-  o: string;
-  h: string;
-  l: string;
-  v: string;
-  q: string;
-  O: number;
-  C: number;
-  F: number;
-  L: number;
-  n: number;
-}
 interface IBinanceSymbolTickerRecord {
   symbolTickerRecord: Record<string, IBinanceSymbolTicker>;
   ids: string[];
 }
 
-
 const SOCKET_END_POINT = 'wss://stream.binance.com:9443/ws';
+interface HeadCell {
+  id: keyof IBinanceSymbolTicker;
+  label: string;
+  numeric: boolean;
+}
+
+const headCells: readonly HeadCell[] = [
+  {
+    id: 'symbol',
+    numeric: false,
+    label: 'Symbol',
+  },
+  {
+    id: 'lastPrice',
+    numeric: true,
+    label: 'Price',
+  },
+  {
+    id: 'priceChangePercent',
+    numeric: true,
+    label: '24H Change rate',
+  },
+];
+interface EnhancedTableProps {
+  onRequestSort: (
+    event: React.MouseEvent<unknown>,
+    property: keyof IBinanceSymbolTicker
+  ) => void;
+  order: Order;
+  orderBy: string;
+}
+
+type Order = 'asc' | 'desc';
+
+function EnhancedTableHead(props: EnhancedTableProps) {
+  const { order, orderBy, onRequestSort } = props;
+  const createSortHandler =
+    (property: keyof IBinanceSymbolTicker) =>
+    (event: React.MouseEvent<unknown>) => {
+      onRequestSort(event, property);
+    };
+
+  return (
+    <TableHead>
+      <TableRow>
+        {headCells.map((headCell) => (
+          <TableCell
+            key={headCell.id}
+            align={headCell.numeric ? 'right' : 'left'}
+            sortDirection={orderBy === headCell.id ? order : false}
+          >
+            <TableSortLabel
+              active={orderBy === headCell.id}
+              direction={orderBy === headCell.id ? order : 'asc'}
+              onClick={createSortHandler(headCell.id)}
+            >
+              {headCell.label}
+            </TableSortLabel>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+}
+
+function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+  // eslint-disable-next-line
+  const first = a[orderBy] as any;
+  // eslint-disable-next-line
+  const next = b[orderBy] as any;
+  const res = first - next;
+  if (!Number.isNaN(res)) return res;
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator<Key extends keyof IBinanceSymbolTicker>(
+  order: Order,
+  orderBy: Key
+): (
+  a: { [key in Key]: number | string },
+  b: { [key in Key]: number | string }
+) => number {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
 
 const Symbols = function () {
   const [symbolTickerRecord, setSymbolTickerRecord] = useState<
     Record<string, IBinanceSymbolTicker>
   >({});
   const [shouldDisplayIds, setShouldDisplayIds] = useState<string[]>([]);
-  // const [didDisplayIds, setDidDisplayIds] = useState<string[]>([]);
-  // const [nextIndex, setNextIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | undefined>();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(SOCKET_END_POINT, {
-    onOpen() {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('WebSocket connected');
-      }
-    },
-    onClose() {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('WebSocket disconnected');
-      }
-    },
     shouldReconnect() {
       return true;
     },
   });
+
+  const [order, setOrder] = React.useState<Order>('asc');
+  const [orderBy, setOrderBy] =
+    React.useState<keyof IBinanceSymbolTicker>('symbol');
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const handleRequestSort = (
+    event: React.MouseEvent<unknown>,
+    property: keyof IBinanceSymbolTicker
+  ) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Avoid a layout jump when reaching the last page with empty rows.
+  const emptyRows =
+    page > 0
+      ? Math.max(0, (1 + page) * rowsPerPage - shouldDisplayIds.length)
+      : 0;
 
   useEffect(
     function () {
@@ -122,7 +219,6 @@ const Symbols = function () {
         },
         binanceSymbolTickerRecord);
         setSymbolTickerRecord(records.symbolTickerRecord);
-        // setDidDisplayIds(records.ids);
         setShouldDisplayIds(records.ids);
       } catch (e) {
         if (e instanceof Error) {
@@ -139,14 +235,50 @@ const Symbols = function () {
 
   if (isLoading) return <Box>Loading...</Box>;
   if (error) return <Box>{error.message}</Box>;
+
   return (
-    <Box>
-      {shouldDisplayIds.map(function (id) {
-        const symbolTicker = symbolTickerRecord[id];
-        return (
-          <SymbolItem key={symbolTicker.symbol} symbolTicker={symbolTicker} />
-        );
-      })}
+    <Box sx={{ width: '100%' }}>
+      <TableContainer>
+        <Table sx={{ minWidth: 350 }} aria-labelledby="tableTitle">
+          <EnhancedTableHead
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={handleRequestSort}
+          />
+          <TableBody>
+            {shouldDisplayIds
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .sort(function (a, b) {
+                return getComparator(order, orderBy)(
+                  symbolTickerRecord[a],
+                  symbolTickerRecord[b]
+                );
+              })
+              .map(function (id) {
+                return (
+                  <SymbolRow
+                    key={symbolTickerRecord[id].symbol}
+                    symbolTicker={symbolTickerRecord[id]}
+                  />
+                );
+              })}
+            {emptyRows > 0 && (
+              <TableRow>
+                <TableCell colSpan={6} />
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={shouldDisplayIds.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
     </Box>
   );
 };

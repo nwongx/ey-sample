@@ -30,7 +30,6 @@ root.render(
           <Box
             sx={{
               height: 'calc(100vh - 56px)',
-              p: 2,
               boxSizing: 'border-box',
             }}
           >

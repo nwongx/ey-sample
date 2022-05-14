@@ -39,7 +39,6 @@ module.exports = {
         'import/prefer-default-export': 'off',
         "prettier/prettier": ["error", { "singleQuote": true }],
         "func-names": ["error", "never"],
-        "no-floating-promise/no-floating-promise": ['error', 'never'],
       },
     },
   ],
