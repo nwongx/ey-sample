@@ -19,7 +19,7 @@ export const supportTokens = [
   },
   {
     id: 'daiusdt',
-    symbol: 'DAIUSDT',
+    symbol: null,
     token: 'DAI',
     address: '0x8a9424745056Eb399FD19a0EC26A14316684e274',
   },
