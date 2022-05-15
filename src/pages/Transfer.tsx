@@ -1,25 +1,15 @@
-import {
-  Button,
-  Divider,
-  FormHelperText,
-  Grid,
-  Input,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { Box } from '@mui/system';
+import { Box, Button, Divider, Grid, Typography } from '@mui/material';
 import React, { FC, useContext, useEffect, useReducer, useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { WalletContext } from '../contexts/walletContext';
-import { supportTokens } from '../data/supportToken';
 import Web3 from 'web3';
 import axios from 'axios';
 import Modal from '@mui/material/Modal';
-
-type Props = {};
+import { supportTokens } from '../data/supportToken';
+import { WalletContext } from '../contexts/walletContext';
+import HelperTextTextField from '../components/HeplerTextTextField';
 
 const FAILURE_TRANSFER_TOKEN = 'FAILURE_TRANSFER_TOKEN';
 const SUCCESS_TRANSFER_TOKEN = 'SUCCESS_TRANSFER_TOKEN';
@@ -74,7 +64,7 @@ const reducer = function (
   }
 };
 
-const Transfer: FC<Props> = function () {
+const Transfer: FC = function () {
   const [state, dispatch] = useReducer(reducer, transferInitialState);
   const [tokenAddress, setTokenAddress] = useState('native');
   const [toAddress, setToAddress] = useState('');
@@ -324,15 +314,14 @@ const Transfer: FC<Props> = function () {
                   label="Token"
                   onChange={onTokenChange}
                 >
-                  <MenuItem value="native">BNB</MenuItem>
                   {supportTokens.reduce<React.ReactNode[]>(function (
                     menuItems,
-                    symbol
+                    { id, token, address, isTransferable }
                   ) {
-                    if (!symbol.address) return menuItems;
+                    if (!isTransferable) return menuItems;
                     menuItems.push(
-                      <MenuItem key={symbol.id} value={symbol.address}>
-                        {symbol.token}
+                      <MenuItem key={id} value={address || 'native'}>
+                        {token}
                       </MenuItem>
                     );
                     return menuItems;
@@ -340,30 +329,18 @@ const Transfer: FC<Props> = function () {
                   [])}
                 </Select>
               </FormControl>
-              <FormControl>
-                <TextField
-                  required
-                  error={!!state.toError}
-                  label="To"
-                  variant="standard"
-                  onChange={onToChange}
-                />
-                {state.toError && (
-                  <FormHelperText>{state.toError}</FormHelperText>
-                )}
-              </FormControl>
-              <FormControl>
-                <TextField
-                  required
-                  error={!!state.amountError}
-                  label="Amount"
-                  variant="standard"
-                  onChange={onAmountChange}
-                />
-                {state.amountError && (
-                  <FormHelperText>{state.amountError}</FormHelperText>
-                )}
-              </FormControl>
+              <HelperTextTextField
+                required
+                errorMsg={state.toError}
+                label="To"
+                onChange={onToChange}
+              />
+              <HelperTextTextField
+                required
+                errorMsg={state.amountError}
+                label="Amount"
+                onChange={onAmountChange}
+              />
               <Button
                 type="submit"
                 disabled={!accounts || accounts.length === 0}

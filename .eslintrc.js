@@ -39,6 +39,10 @@ module.exports = {
         'import/prefer-default-export': 'off',
         "prettier/prettier": ["error", { "singleQuote": true }],
         "func-names": ["error", "never"],
+        "react/jsx-no-bind": ["error", {
+          "allowArrowFunctions": true,
+          "allowFunctions": true
+        }]
       },
     },
   ],
