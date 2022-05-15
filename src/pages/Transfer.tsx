@@ -1,15 +1,10 @@
 import { Box, Button, Divider, Grid, Typography } from '@mui/material';
 import React, { FC, useContext, useEffect, useReducer, useState } from 'react';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Web3 from 'web3';
 import axios from 'axios';
 import Modal from '@mui/material/Modal';
-import { supportTokens } from '../data/supportToken';
 import { WalletContext } from '../contexts/walletContext';
-import HelperTextTextField from '../components/HeplerTextTextField';
+import TransferForm from '../components/TransferForm';
 
 const FAILURE_TRANSFER_TOKEN = 'FAILURE_TRANSFER_TOKEN';
 const SUCCESS_TRANSFER_TOKEN = 'SUCCESS_TRANSFER_TOKEN';
@@ -211,18 +206,6 @@ const Transfer: FC = function () {
     [isSubmitted]
   );
 
-  function onTokenChange(e: SelectChangeEvent) {
-    setTokenAddress(e.target.value);
-  }
-
-  function onToChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setToAddress(e.target.value);
-  }
-
-  function onAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setAmount(e.target.value);
-  }
-
   function onSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitted(true);
@@ -294,72 +277,7 @@ const Transfer: FC = function () {
             <Typography variant="h6">Transfer</Typography>
           </Box>
           <Divider />
-          <form onSubmit={onSubmit}>
-            <Grid
-              sx={{
-                p: 2,
-                paddingBottom: 4,
-                gap: 2,
-              }}
-              container
-              justifyContent="center"
-              flexDirection="column"
-            >
-              <FormControl>
-                <InputLabel id="token-select-label">Token</InputLabel>
-                <Select
-                  defaultValue="native"
-                  labelId="token-select-label"
-                  id="token-select"
-                  label="Token"
-                  onChange={onTokenChange}
-                >
-                  {supportTokens.reduce<React.ReactNode[]>(function (
-                    menuItems,
-                    { id, token, address, isTransferable }
-                  ) {
-                    if (!isTransferable) return menuItems;
-                    menuItems.push(
-                      <MenuItem key={id} value={address || 'native'}>
-                        {token}
-                      </MenuItem>
-                    );
-                    return menuItems;
-                  },
-                  [])}
-                </Select>
-              </FormControl>
-              <HelperTextTextField
-                required
-                errorMsg={state.toError}
-                label="To"
-                onChange={onToChange}
-              />
-              <HelperTextTextField
-                required
-                errorMsg={state.amountError}
-                label="Amount"
-                onChange={onAmountChange}
-              />
-              <Button
-                type="submit"
-                disabled={!accounts || accounts.length === 0}
-                sx={{
-                  marginTop: 3,
-                  color: 'white',
-                  fontWeight: 600,
-                  height: 48,
-                  width: '100%',
-                  borderRadius: 3,
-                  backgroundColor: 'rgb(31, 199, 212)',
-                }}
-              >
-                {!accounts || accounts.length === 0
-                  ? 'please connect to metamask'
-                  : 'transfer'}
-              </Button>
-            </Grid>
-          </form>
+          <TransferForm onSubmit={onSubmit} />
         </Box>
       </Grid>
     </>
