@@ -1,5 +1,3 @@
-import { FamilyRestroom } from "@mui/icons-material";
-
 export const supportTokens = [
   {
     id: 'binanceBnbusdt',

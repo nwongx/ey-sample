@@ -164,7 +164,15 @@ const Symbols = function () {
 
   useEffect(
     function () {
-      const streams = supportTokens.map((token) => `${token.id}@ticker@3000ms`);
+      const streams = supportTokens.reduce<string[]>(function (
+        tickerStreams,
+        token
+      ) {
+        if (!token.symbol) return tickerStreams;
+        tickerStreams.push(`${token.symbol.toLocaleLowerCase()}@ticker@3000ms`);
+        return tickerStreams;
+      },
+      []);
       sendJsonMessage({
         method: 'SUBSCRIBE',
         id: 1,
