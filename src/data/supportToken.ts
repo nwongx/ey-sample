@@ -3,7 +3,7 @@ export const supportTokens = [
     id: 'binanceBnbusdt',
     symbol: 'BNBUSDT',
     token: 'BNB',
-    address: null,
+    address: 'native',
     isNativeToken: true,
     isTransferable: true,
   },

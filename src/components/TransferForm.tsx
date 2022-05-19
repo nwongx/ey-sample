@@ -1,15 +1,36 @@
-import React, { useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { Grid, Button, SelectChangeEvent } from '@mui/material';
 import HelperTextTextField from './HeplerTextTextField';
 import { supportTokens } from '../data/supportToken';
 import LabelSelect from './LabelSelect';
+import type { IItemProps } from './LabelSelect';
+import { WalletContext } from '../contexts/walletContext';
+import { simplifiedBEP20Abi } from '../data/abi';
 
-const transferableTokens = supportTokens.filter(function (token) {
-  return token.isTransferable;
-});
+const transferableTokens = supportTokens.reduce<IItemProps[]>(function (
+  tokens,
+  token
+) {
+  if (!token.isTransferable) return tokens;
+  tokens.push({
+    id: token.id,
+    selectValue: token.address as string,
+    displayValue: token.token,
+  });
+  return tokens;
+},
+[]);
+
+export interface IFormData {
+  isValid: boolean;
+  tokenAddress?: string;
+  toAddress?: string;
+  amount?: string;
+  estimatedGas?: number;
+}
 
 interface IProps {
-  onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => void;
+  onSubmitHandler: (formData: IFormData) => void;
 }
 
 const formStyles = {
@@ -28,15 +49,16 @@ const buttonStyles = {
   backgroundColor: 'rgb(31, 199, 212)',
 };
 
-const TransferForm: React.FC<IProps> = function ({ onSubmit }) {
+const TransferForm: React.FC<IProps> = function ({ onSubmitHandler }) {
+  const { web3, accounts } = useContext(WalletContext);
   const [tokenAddress, setTokenAddress] = useState('native');
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [toAddressError, setToAddressError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
 
-  function onTokenChange(e: SelectChangeEvent) {
-    setTokenAddress(e.target.value);
+  function onTokenChange(e: SelectChangeEvent<unknown>) {
+    setTokenAddress(e.target.value as string);
   }
 
   function onToAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -46,6 +68,92 @@ const TransferForm: React.FC<IProps> = function ({ onSubmit }) {
   function onAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
     setAmount(e.target.value);
   }
+
+  const onSubmit = useCallback(
+    function (e: React.ChangeEvent<HTMLFormElement>) {
+      e.preventDefault();
+
+      async function asyncHelper() {
+        if (!accounts || accounts.length === 0) {
+          onSubmitHandler({
+            isValid: false,
+          });
+          return;
+        }
+
+        let isValid = true;
+        let estimatedGas = 0;
+
+        if (!web3.utils.isAddress(toAddress)) {
+          setToAddressError('Invalid address');
+          isValid = false;
+        }
+
+        const amountInWei = web3.utils.toWei(amount);
+        try {
+          if (tokenAddress === 'native') {
+            const balance = await web3.eth.getBalance(accounts[0]);
+            // do not check gas fee as user can adjust in metamask
+            if (parseInt(balance, 10) < parseInt(amountInWei, 10)) {
+              throw new Error('transfer amount exceed balance');
+            }
+            estimatedGas = 21000;
+          } else {
+            const contract = new web3.eth.Contract(
+              simplifiedBEP20Abi,
+              tokenAddress,
+              {
+                from: accounts[0],
+              }
+            );
+            /* eslint-disable @typescript-eslint/no-unsafe-call,  
+          @typescript-eslint/no-unsafe-member-access,  
+          @typescript-eslint/no-unsafe-assignment */
+            estimatedGas = await contract.methods
+              .transfer(toAddress, amountInWei)
+              .estimateGas();
+            /* eslint-enable @typescript-eslint/no-unsafe-call,  
+          @typescript-eslint/no-unsafe-member-access,  
+          @typescript-eslint/no-unsafe-assignment */
+          }
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            if (err.message.includes('transfer amount')) {
+              setAmountError('invalid amount');
+            }
+          }
+          isValid = false;
+        }
+
+        if (!isValid) {
+          onSubmitHandler({
+            isValid,
+          });
+        } else {
+          setAmountError(null);
+          setToAddressError(null);
+          onSubmitHandler({
+            isValid,
+            amount: amountInWei,
+            toAddress,
+            tokenAddress,
+            estimatedGas,
+          });
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      asyncHelper();
+    },
+    [
+      accounts,
+      amount,
+      onSubmitHandler,
+      toAddress,
+      tokenAddress,
+      web3.eth,
+      web3.utils,
+    ]
+  );
 
   return (
     <form onSubmit={onSubmit}>
@@ -59,11 +167,9 @@ const TransferForm: React.FC<IProps> = function ({ onSubmit }) {
           id="token-select"
           label="Token"
           defaultValue={tokenAddress}
-          itemDisplayKey="token"
-          itemIdKey="id"
-          itemValueKey="token"
+          value={tokenAddress}
           items={transferableTokens}
-          // onChange={onTokenChange}
+          onChange={onTokenChange}
         />
         <HelperTextTextField
           required
@@ -79,15 +185,8 @@ const TransferForm: React.FC<IProps> = function ({ onSubmit }) {
           label="Amount"
           onChange={onAmountChange}
         />
-        <Button
-          type="submit"
-          // disabled={!accounts || accounts.length === 0}
-          sx={buttonStyles}
-        >
+        <Button type="submit" sx={buttonStyles}>
           transfer
-          {/* {!accounts || accounts.length === 0
-            ? 'please connect to metamask'
-            : 'transfer'} */}
         </Button>
       </Grid>
     </form>

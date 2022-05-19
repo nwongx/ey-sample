@@ -8,28 +8,21 @@ import {
   SelectProps,
 } from '@mui/material';
 
-type TProps<T extends { [k in keyof T]: string | boolean | null }> =
-  SelectProps & {
-    id: string;
-    defaultValue: string;
-    items: T[];
-    itemIdKey: keyof T;
-    itemValueKey: keyof T;
-    itemDisplayKey: keyof T;
-  };
+export interface IItemProps {
+  id: string;
+  selectValue: string;
+  displayValue: string;
+}
 
-const LabelSelect: <T extends { [k in keyof T]: string | boolean | null }>(
-  props: TProps<T>
-) => ReactElement = function ({
-  id,
-  items,
-  itemIdKey,
-  itemValueKey,
-  itemDisplayKey,
-  defaultValue,
-  label,
-  ...props
-}) {
+type TLabelSelectProps<T extends IItemProps> = SelectProps & {
+  id: string;
+  defaultValue: string;
+  items: T[];
+};
+
+const LabelSelect: <T extends IItemProps>(
+  props: TLabelSelectProps<T>
+) => ReactElement = function ({ id, items, defaultValue, label, ...props }) {
   return (
     <FormControl>
       <InputLabel id={`${id}-label`}>{label}</InputLabel>
@@ -41,15 +34,9 @@ const LabelSelect: <T extends { [k in keyof T]: string | boolean | null }>(
         {...props}
       >
         {items.map(function (item) {
-          const key: string =
-            typeof item[itemIdKey] === 'string' ? item[itemIdKey] : '';
-          const value: string =
-            typeof item[itemValueKey] === 'string'
-              ? item[itemValueKey]
-              : defaultValue;
           return (
-            <MenuItem key={key} value={value}>
-              {item[itemDisplayKey]}
+            <MenuItem key={item.id} value={item.selectValue}>
+              {item.displayValue}
             </MenuItem>
           );
         })}
