@@ -15,9 +15,9 @@ const theme = createTheme({
   typography: {
     subtitle2: {
       fontWeight: 600,
-    }
-  }
-})
+    },
+  },
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
