@@ -5,14 +5,15 @@ const web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
 
 export interface IWalletContext {
   web3: Web3;
+  accounts: string[];
   isMetaMaskInstalled: boolean;
-  accounts?: string[];
   setAccounts?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export const WalletContext = createContext<IWalletContext>({
   web3,
   isMetaMaskInstalled: window.ethereum && window.ethereum.isMetaMask,
+  accounts: [],
 });
 
 type Props = {
