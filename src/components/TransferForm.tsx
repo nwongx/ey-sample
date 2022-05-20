@@ -132,6 +132,9 @@ const TransferForm: React.FC<IProps> = function ({ onSubmitHandler }) {
         } else {
           setAmountError(null);
           setToAddressError(null);
+          setToAddress('');
+          setAmount('');
+          setTokenAddress('native');
           onSubmitHandler({
             isValid,
             amount: amountInWei,
