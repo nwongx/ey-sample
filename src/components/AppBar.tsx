@@ -13,6 +13,11 @@ const linkStyles = {
   textDecoration: 'none' as const,
 };
 
+const iconsBtnStyles = {
+  flex: 1,
+  padding: 0,
+};
+
 const BottomAppBar: FC = function () {
   const { accounts, setAccounts, isMetaMaskInstalled } =
     useContext(WalletContext);
@@ -36,19 +41,28 @@ const BottomAppBar: FC = function () {
   return (
     <AppBar position="fixed" color="primary" sx={{ top: 'auto', bottom: 0 }}>
       <Toolbar>
-        <Link style={linkStyles} to="/">
+        <Link title="To symbol page" style={linkStyles} to="/">
           <ShowChartIcon />
         </Link>
-        <Link style={linkStyles} to="/transfer">
+        <Link title="To transfer page" style={linkStyles} to="/transfer">
           <SwapVertIcon />
         </Link>
         {isMetaMaskInstalled && accounts.length === 0 && (
-          <IconButton onClick={fetchAccounts}>
+          <IconButton
+            title="Connect to Metamask"
+            sx={iconsBtnStyles}
+            disableRipple
+            onClick={fetchAccounts}
+          >
             <AccountBalanceWalletIcon />
           </IconButton>
         )}
         {isMetaMaskInstalled && accounts.length > 0 && (
-          <Link style={linkStyles} to="/transactions">
+          <Link
+            title="To transactions page"
+            style={linkStyles}
+            to="/transactions"
+          >
             <ListAltIcon />
           </Link>
         )}
