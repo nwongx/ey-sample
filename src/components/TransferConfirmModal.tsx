@@ -1,21 +1,11 @@
 import React from 'react';
-import {
-  Box,
-  Modal,
-  Button,
-  Typography,
-  ModalProps,
-  Grid,
-} from '@mui/material';
+import { Modal, Button, ModalProps, Grid } from '@mui/material';
+import type { IDisplayContent } from './TransferInfoRow';
+import TransferInfoRow from './TransferInfoRow';
 
 interface ITransferConfirmModalProps extends Omit<ModalProps, 'children'> {
   displayContent: IDisplayContent[];
   onConfirm: () => void;
-}
-
-interface IDisplayContent {
-  title: string;
-  content: string | number;
 }
 
 const layoutStyles = {
@@ -37,11 +27,6 @@ const gridStyles = {
   marginBottom: '16px',
 };
 
-const gridContentCol = {
-  // gridColumn: '2/3',
-  overflowWrap: 'anywhere',
-};
-
 const TransferConfirmModal: React.FC<ITransferConfirmModalProps> = function ({
   displayContent,
   onConfirm,
@@ -58,10 +43,7 @@ const TransferConfirmModal: React.FC<ITransferConfirmModalProps> = function ({
         <Grid container flexDirection="column" sx={gridStyles}>
           {displayContent.map(function ({ title, content }) {
             return (
-              <Box key={title}>
-                <Typography variant="subtitle1">{title}</Typography>
-                <Typography sx={gridContentCol}>{content}</Typography>
-              </Box>
+              <TransferInfoRow key={title} title={title} content={content} />
             );
           })}
         </Grid>

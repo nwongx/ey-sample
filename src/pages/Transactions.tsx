@@ -1,8 +1,9 @@
-import { Typography, Paper, Grid, Box } from '@mui/material';
+import { Paper, Grid } from '@mui/material';
 import axios from 'axios';
 import React, { FC, useContext, useEffect, useState } from 'react';
 import dateFormat from 'dateformat';
 import { WalletContext } from '../contexts/walletContext';
+import TransferInfoRow from '../components/TransferInfoRow';
 
 export interface IBSCTx {
   blockNumber: string;
@@ -40,10 +41,6 @@ const paperStyles = {
   padding: 2,
 };
 
-const contentSyles = {
-  overflowWrap: 'anywhere',
-};
-
 const Transactions: FC = function () {
   const [transactions, setTransactions] = useState<IBSCTx[]>([]);
   const { accounts } = useContext(WalletContext);
@@ -76,37 +73,21 @@ const Transactions: FC = function () {
       {transactions.map(function (tx: IBSCTx) {
         return (
           <Paper sx={paperStyles} key={tx.blockHash} elevation={5}>
-            <Box>
-              <Typography>Block number</Typography>
-              <Typography sx={contentSyles}>{tx.blockNumber}</Typography>
-            </Box>
-            <Box>
-              <Typography>Date</Typography>
-              <Typography sx={contentSyles}>
-                {dateFormat(
-                  parseInt(tx.timeStamp, 10) * 1000,
-                  'mm/dd/yyyy hh:MM:ss'
-                )}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>From</Typography>
-              <Typography sx={contentSyles}>{tx.from}</Typography>
-            </Box>
-            <Box>
-              <Typography>To</Typography>
-              <Typography sx={contentSyles}>{tx.to}</Typography>
-            </Box>
-            <Box>
-              <Typography>Gas fee</Typography>
-              <Typography sx={contentSyles}>
-                {parseInt(tx.gasPrice, 10) * parseInt(tx.gasUsed, 10)}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>Amount</Typography>
-              <Typography sx={contentSyles}>{tx.value}</Typography>
-            </Box>
+            <TransferInfoRow title="Block number" content={tx.blockNumber} />
+            <TransferInfoRow
+              title="Date"
+              content={dateFormat(
+                parseInt(tx.timeStamp, 10) * 1000,
+                'mm/dd/yyyy hh:MM:ss'
+              )}
+            />
+            <TransferInfoRow title="From" content={tx.from} />
+            <TransferInfoRow title="To" content={tx.to} />
+            <TransferInfoRow
+              title="Gas fee"
+              content={parseInt(tx.gasPrice, 10) * parseInt(tx.gasUsed, 10)}
+            />
+            <TransferInfoRow title="Amount" content={tx.value} />
           </Paper>
         );
       })}
