@@ -156,7 +156,12 @@ const Transfer: FC = function () {
             <Typography variant="h6">Transfer</Typography>
           </Box>
           <Divider />
-          <TransferForm onSubmitHandler={onSubmitHanlder} />
+          <TransferForm
+            disabled={accounts.length === 0}
+            disabledTitle="Please connect Metamask by clicking the bottom right button"
+            enabledTitle="Transfer"
+            onSubmitHandler={onSubmitHanlder}
+          />
         </Box>
       </Grid>
     </>

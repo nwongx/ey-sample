@@ -29,8 +29,11 @@ export interface IFormData {
   estimatedGas?: number;
 }
 
-interface IProps {
+interface ITransferFormProps {
   onSubmitHandler: (formData: IFormData) => void;
+  disabled: boolean;
+  disabledTitle: string;
+  enabledTitle: string;
 }
 
 const formStyles = {
@@ -47,9 +50,21 @@ const buttonStyles = {
   width: '100%',
   borderRadius: 3,
   backgroundColor: 'rgb(31, 199, 212)',
+  '&:hover': {
+    backgroundColor: 'rgba(31, 199, 212, 0.75)',
+  },
+  '&:disabled': {
+    backgroundColor: 'rgba(31, 199, 212, 0.35)',
+    height: 56,
+  },
 };
 
-const TransferForm: React.FC<IProps> = function ({ onSubmitHandler }) {
+const TransferForm: React.FC<ITransferFormProps> = function ({
+  onSubmitHandler,
+  disabled,
+  disabledTitle,
+  enabledTitle,
+}) {
   const { web3, accounts } = useContext(WalletContext);
   const [tokenAddress, setTokenAddress] = useState('native');
   const [toAddress, setToAddress] = useState('');
@@ -188,8 +203,8 @@ const TransferForm: React.FC<IProps> = function ({ onSubmitHandler }) {
           label="Amount"
           onChange={onAmountChange}
         />
-        <Button type="submit" sx={buttonStyles}>
-          transfer
+        <Button disabled={disabled} type="submit" sx={buttonStyles}>
+          {disabled ? disabledTitle : enabledTitle}
         </Button>
       </Grid>
     </form>
