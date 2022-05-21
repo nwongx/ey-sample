@@ -116,6 +116,14 @@ function getComparator<Key extends keyof IBinanceSymbolTicker>(
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+const rootStyles = {
+  width: '100%',
+};
+
+const tableStyles = {
+  minWidth: 350,
+};
+
 const Symbols = function () {
   const [symbolTickerRecord, setSymbolTickerRecord] = useState<
     Record<string, IBinanceSymbolTicker>
@@ -134,7 +142,7 @@ const Symbols = function () {
   const [orderBy, setOrderBy] =
     React.useState<keyof IBinanceSymbolTicker>('symbol');
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -245,9 +253,9 @@ const Symbols = function () {
   if (error) return <Box>{error.message}</Box>;
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={rootStyles}>
       <TableContainer>
-        <Table sx={{ minWidth: 350 }} aria-labelledby="tableTitle">
+        <Table sx={tableStyles} aria-labelledby="tableTitle">
           <EnhancedTableHead
             order={order}
             orderBy={orderBy}
@@ -279,8 +287,6 @@ const Symbols = function () {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
         count={shouldDisplayIds.length}
         rowsPerPage={rowsPerPage}
         page={page}
