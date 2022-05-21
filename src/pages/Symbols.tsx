@@ -129,7 +129,7 @@ const Symbols = function () {
     Record<string, IBinanceSymbolTicker>
   >({});
   const [shouldDisplayIds, setShouldDisplayIds] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | undefined>();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(SOCKET_END_POINT, {
@@ -287,6 +287,7 @@ const Symbols = function () {
         </Table>
       </TableContainer>
       <TablePagination
+        component="div"
         count={shouldDisplayIds.length}
         rowsPerPage={rowsPerPage}
         page={page}
