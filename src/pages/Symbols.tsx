@@ -255,7 +255,7 @@ const Symbols = function () {
   return (
     <Box sx={rootStyles}>
       <TableContainer>
-        <Table sx={tableStyles} aria-labelledby="tableTitle">
+        <Table sx={tableStyles} aria-labelledby="symbolsTable">
           <EnhancedTableHead
             order={order}
             orderBy={orderBy}
