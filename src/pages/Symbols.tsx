@@ -9,17 +9,12 @@ import {
   TablePagination,
 } from '@mui/material';
 import useWebSocket from 'react-use-websocket';
-import { fetchSymbolTickers } from '../api';
+import { fetchSymbolTickerRecords } from '../api';
 import { IBinanceSymbolTicker } from '../api/interface';
-import { supportTokens } from '../data/supportToken';
+import { supportTokens, streams } from '../data/supportToken';
 import SymbolRow from '../components/SymbolRow';
 import type { IStreamTicker } from '../api/interface';
 import EnhancedTableHead from '../components/EnhancedTableHead';
-
-interface IBinanceSymbolTickerRecord {
-  symbolTickerRecord: Record<string, IBinanceSymbolTicker>;
-  ids: string[];
-}
 
 const SOCKET_END_POINT = 'wss://stream.binance.com:9443/ws';
 
@@ -66,6 +61,7 @@ const Symbols = function () {
     Record<string, IBinanceSymbolTicker>
   >({});
   const [shouldDisplayIds, setShouldDisplayIds] = useState<string[]>([]);
+  const [didDisplayIds, setDidDisplayIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | undefined>();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -78,8 +74,8 @@ const Symbols = function () {
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] =
     React.useState<keyof IBinanceSymbolTicker>('symbol');
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -109,15 +105,6 @@ const Symbols = function () {
 
   useEffect(
     function () {
-      const streams = supportTokens.reduce<string[]>(function (
-        tickerStreams,
-        token
-      ) {
-        if (!token.symbol) return tickerStreams;
-        tickerStreams.push(`${token.symbol.toLocaleLowerCase()}@ticker@3000ms`);
-        return tickerStreams;
-      },
-      []);
       sendJsonMessage({
         method: 'SUBSCRIBE',
         id: 1,
@@ -155,22 +142,7 @@ const Symbols = function () {
     async function fetchTransactionsHelper() {
       try {
         setIsLoading(true);
-        const binanceSymbolTickerRecord: IBinanceSymbolTickerRecord = {
-          symbolTickerRecord: {},
-          ids: [],
-        };
-        const responds = await fetchSymbolTickers(supportTokens);
-        const records = responds.reduce<IBinanceSymbolTickerRecord>(function (
-          record,
-          respond
-        ) {
-          if (!respond.data.symbol) return record;
-          // eslint-disable-next-line no-param-reassign
-          record.symbolTickerRecord[respond.data.symbol] = respond.data;
-          record.ids.push(respond.data.symbol);
-          return record;
-        },
-        binanceSymbolTickerRecord);
+        const records = await fetchSymbolTickerRecords(supportTokens);
         setSymbolTickerRecord(records.symbolTickerRecord);
         setShouldDisplayIds(records.ids);
       } catch (e) {
@@ -186,6 +158,21 @@ const Symbols = function () {
     fetchTransactionsHelper();
   }, []);
 
+  useEffect(
+    function () {
+      const ids = shouldDisplayIds
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .sort(function (a, b) {
+          return getComparator(order, orderBy)(
+            symbolTickerRecord[a],
+            symbolTickerRecord[b]
+          );
+        });
+      setDidDisplayIds(ids);
+    },
+    [order, orderBy, page, rowsPerPage, shouldDisplayIds, symbolTickerRecord]
+  );
+
   if (isLoading) return <Box>Loading...</Box>;
   if (error) return <Box>{error.message}</Box>;
 
@@ -199,22 +186,14 @@ const Symbols = function () {
             onRequestSort={handleRequestSort}
           />
           <TableBody>
-            {shouldDisplayIds
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .sort(function (a, b) {
-                return getComparator(order, orderBy)(
-                  symbolTickerRecord[a],
-                  symbolTickerRecord[b]
-                );
-              })
-              .map(function (id) {
-                return (
-                  <SymbolRow
-                    key={symbolTickerRecord[id].symbol}
-                    symbolTicker={symbolTickerRecord[id]}
-                  />
-                );
-              })}
+            {didDisplayIds.map(function (id) {
+              return (
+                <SymbolRow
+                  key={symbolTickerRecord[id].symbol}
+                  symbolTicker={symbolTickerRecord[id]}
+                />
+              );
+            })}
             {emptyRows > 0 && (
               <TableRow>
                 <TableCell colSpan={6} />

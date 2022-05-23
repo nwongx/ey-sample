@@ -40,3 +40,13 @@ export const supportTokens = [
     isTransferable: true,
   },
 ];
+
+export const streams = supportTokens.reduce<string[]>(function (
+  tickerStreams,
+  token
+) {
+  if (!token.symbol) return tickerStreams;
+  tickerStreams.push(`${token.symbol.toLocaleLowerCase()}@ticker@3000ms`);
+  return tickerStreams;
+},
+[]);
