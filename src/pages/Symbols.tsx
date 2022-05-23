@@ -5,9 +5,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  TableSortLabel,
   TablePagination,
 } from '@mui/material';
 import useWebSocket from 'react-use-websocket';
@@ -16,6 +14,7 @@ import { IBinanceSymbolTicker } from '../api/interface';
 import { supportTokens } from '../data/supportToken';
 import SymbolRow from '../components/SymbolRow';
 import type { IStreamTicker } from '../api/interface';
+import EnhancedTableHead from '../components/EnhancedTableHead';
 
 interface IBinanceSymbolTickerRecord {
   symbolTickerRecord: Record<string, IBinanceSymbolTicker>;
@@ -23,70 +22,8 @@ interface IBinanceSymbolTickerRecord {
 }
 
 const SOCKET_END_POINT = 'wss://stream.binance.com:9443/ws';
-interface HeadCell {
-  id: keyof IBinanceSymbolTicker;
-  label: string;
-  numeric: boolean;
-}
 
-const headCells: readonly HeadCell[] = [
-  {
-    id: 'symbol',
-    numeric: false,
-    label: 'Symbol',
-  },
-  {
-    id: 'lastPrice',
-    numeric: true,
-    label: 'Price',
-  },
-  {
-    id: 'priceChangePercent',
-    numeric: true,
-    label: '24H Change rate',
-  },
-];
-interface EnhancedTableProps {
-  onRequestSort: (
-    event: React.MouseEvent<unknown>,
-    property: keyof IBinanceSymbolTicker
-  ) => void;
-  order: Order;
-  orderBy: string;
-}
-
-type Order = 'asc' | 'desc';
-
-function EnhancedTableHead(props: EnhancedTableProps) {
-  const { order, orderBy, onRequestSort } = props;
-  const createSortHandler =
-    (property: keyof IBinanceSymbolTicker) =>
-    (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
-
-  return (
-    <TableHead>
-      <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
+export type Order = 'asc' | 'desc';
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   // eslint-disable-next-line
