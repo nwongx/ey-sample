@@ -1,3 +1,8 @@
+# ToDo
+1. Refactor
+2. Adding react-window in transaction list
+3. enchance transfer UX
+4. Adding desktop view
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
