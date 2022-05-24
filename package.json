@@ -33,7 +33,6 @@
     "format": "prettier --write src/**/*.ts{,x}",
     "lint": "tsc --noEmit && eslint src/**/*.ts{,x}",
     "dc-up-dev": "docker-compose up -d --build dev",
-    "dc-up-build": "docker-compose up -d --build build",
     "dc-down": "docker-compose down"
   },
   "prettier": {
